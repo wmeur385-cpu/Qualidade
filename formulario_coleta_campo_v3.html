@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F3B44">
+<title>Ficha de Coleta — Campo (GACF)</title>
+<style>
+  :root{
+    --bg:#EEF2F3;
+    --surface:#FFFFFF;
+    --ink:#0E353D;
+    --ink-2:#5B6E73;
+    --line:#D5DEE0;
+    --line-2:#C2CFD2;
+    --teal:#0F3B44;
+    --teal-600:#13525E;
+    --amber:#E07B1A;
+    --amber-700:#B65E0C;
+    --green:#1E8A56;
+    --yellow:#C98A0C;
+    --slate:#6E8087;
+    --red:#C0392B;
+    --red-bg:#FBECEA;
+    --focus:#12A0B8;
+    --radius:12px;
+    --tap:52px;
+    --shadow:0 1px 2px rgba(14,53,61,.06), 0 4px 14px rgba(14,53,61,.07);
+    --safe-b:env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    font-size:16px;
+    line-height:1.4;
+    padding-bottom:calc(var(--tap) + 28px + var(--safe-b));
+    -webkit-text-size-adjust:100%;
+  }
+  .num{font-variant-numeric:tabular-nums;}
+
+  /* ---------- Header ---------- */
+  header.app{
+    position:sticky; top:0; z-index:20;
+    background:var(--teal);
+    color:#EAF2F3;
+    padding:14px 16px calc(14px);
+    padding-top:calc(14px + env(safe-area-inset-top,0px));
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    box-shadow:0 2px 10px rgba(14,53,61,.18);
+  }
+  header.app h1{
+    font-size:1.02rem; font-weight:700; margin:0; letter-spacing:.2px;
+    line-height:1.15;
+  }
+  header.app .sub{font-size:.72rem; color:#9FC0C4; font-weight:500; letter-spacing:.3px; text-transform:uppercase;}
+  .store-chip{
+    font-size:.68rem; font-weight:600; color:#CFE2E4;
+    background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18);
+    padding:5px 9px; border-radius:999px; white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  .store-chip.warn{color:#FFE0B4; border-color:rgba(224,123,26,.55); background:rgba(224,123,26,.18);}
+  .store-chip.crit{color:#FFD3CC; border-color:rgba(192,57,43,.6); background:rgba(192,57,43,.22);}
+
+  main{max-width:640px; margin:0 auto; padding:16px 14px 8px;}
+  .view{display:none;}
+  .view.active{display:block; animation:fade .18s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:16px; margin-bottom:14px;
+  }
+  .card h2{font-size:.95rem; margin:0 0 12px; color:var(--teal); font-weight:700;}
+  .eyebrow{
+    font-size:.68rem; font-weight:700; letter-spacing:.9px; text-transform:uppercase;
+    color:var(--amber-700); margin-bottom:6px;
+  }
+
+  /* ---------- Stepper ---------- */
+  .stepper{display:flex; align-items:flex-start; margin:4px 2px 16px;}
+  .step{flex:1; display:flex; flex-direction:column; align-items:center; position:relative; gap:6px;}
+  .step .dot{
+    width:38px; height:38px; border-radius:50%; display:grid; place-items:center;
+    background:#E4EAEB; color:var(--slate); font-weight:800; font-size:.95rem;
+    border:2px solid var(--line-2); z-index:2; transition:.2s;
+  }
+  .step .lbl{font-size:.72rem; font-weight:600; color:var(--ink-2); text-align:center; line-height:1.15;}
+  .step .line{position:absolute; top:19px; left:-50%; width:100%; height:3px; background:var(--line-2); z-index:1;}
+  .step:first-child .line{display:none;}
+  .step.done .dot{background:var(--green); color:#fff; border-color:var(--green);}
+  .step.done .line{background:var(--green);}
+  .step.active .dot{background:var(--amber); color:#fff; border-color:var(--amber); box-shadow:0 0 0 4px rgba(224,123,26,.18);}
+  .step.active .lbl{color:var(--amber-700);}
+  .step .dot svg{width:18px; height:18px;}
+
+  /* ---------- Form ---------- */
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  label.lab{display:block; font-size:.82rem; font-weight:600; color:var(--ink); margin-bottom:6px;}
+  label.lab .req{color:var(--amber-700); margin-left:2px;}
+  .hint{font-size:.74rem; color:var(--ink-2); margin-top:5px; line-height:1.35;}
+  input[type=text], input[type=number], input[type=date], input[type=time], select, textarea{
+    width:100%; font:inherit; color:var(--ink);
+    background:#FBFDFD; border:1.5px solid var(--line-2); border-radius:10px;
+    padding:0 12px; min-height:var(--tap);
+    appearance:none; -webkit-appearance:none;
+  }
+  textarea{min-height:84px; padding:12px; line-height:1.4; resize:vertical;}
+  input:focus, select:focus, textarea:focus{
+    outline:none; border-color:var(--focus); background:#fff;
+    box-shadow:0 0 0 3px rgba(18,160,184,.18);
+  }
+  .field.miss input, .field.miss select{border-color:var(--red); background:var(--red-bg);}
+  select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235B6E73' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:38px;}
+
+  .row{display:flex; gap:10px;}
+  .row > .field{flex:1; margin-bottom:14px;}
+
+  /* input + botão agora */
+  .with-now{display:flex; gap:8px;}
+  .with-now input{flex:1;}
+  .btn-now{
+    flex:0 0 auto; min-height:var(--tap); padding:0 14px; border-radius:10px;
+    background:#FCEFDF; color:var(--amber-700); border:1.5px solid #F0CFA3;
+    font-weight:700; font-size:.82rem; cursor:pointer; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-now:active{background:#F7E0C4;}
+  .btn-now svg{width:15px; height:15px;}
+
+  /* toggle switch */
+  .switch{display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:#F6F9F9; border:1.5px solid var(--line-2); border-radius:10px; padding:12px 14px; min-height:var(--tap); cursor:pointer;}
+  .switch .stxt{font-size:.86rem; font-weight:600;}
+  .track{flex:0 0 auto; width:50px; height:30px; border-radius:999px; background:#C9D4D6; position:relative; transition:.2s;}
+  .track::after{content:""; position:absolute; top:3px; left:3px; width:24px; height:24px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:.2s;}
+  .switch.on .track{background:var(--green);}
+  .switch.on .track::after{transform:translateX(20px);}
+
+  /* segmented (chuva) */
+  .seg{display:grid; grid-template-columns:repeat(4,1fr); gap:6px;}
+  .seg button{
+    min-height:var(--tap); border:1.5px solid var(--line-2); background:#FBFDFD; border-radius:10px;
+    font:inherit; font-size:.8rem; font-weight:600; color:var(--ink-2); cursor:pointer; padding:4px 2px; line-height:1.1;
+  }
+  .seg button.sel{background:var(--teal); border-color:var(--teal); color:#fff;}
+
+  /* assinatura */
+  .sign-wrap{border:1.5px dashed var(--line-2); border-radius:10px; background:#fff; position:relative; overflow:hidden;}
+  .sign-wrap.miss{border-color:var(--red); border-style:solid;}
+  canvas#sig{display:block; width:100%; height:150px; touch-action:none; cursor:crosshair;}
+  .sign-base{position:absolute; left:14px; right:14px; bottom:34px; border-bottom:1.5px solid var(--line-2);}
+  .sign-tools{display:flex; justify-content:space-between; align-items:center; padding:8px 12px; border-top:1px solid var(--line);}
+  .sign-tools .lg{font-size:.72rem; color:var(--ink-2);}
+  .link-btn{background:none; border:none; color:var(--amber-700); font-weight:700; font-size:.82rem; cursor:pointer; padding:6px 4px;}
+
+  /* botões de ação */
+  .actions{display:flex; gap:10px; margin-top:4px;}
+  .btn{min-height:var(--tap); border-radius:11px; font:inherit; font-weight:700; font-size:.92rem; cursor:pointer; border:1.5px solid transparent; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 16px; flex:1;}
+  .btn svg{width:18px; height:18px;}
+  .btn.primary{background:var(--amber); color:#fff;}
+  .btn.primary:active{background:var(--amber-700);}
+  .btn.ghost{background:#fff; color:var(--teal); border-color:var(--line-2); flex:0 0 auto;}
+  .btn.ghost:active{background:#F2F6F6;}
+  .btn.teal{background:var(--teal); color:#fff;}
+  .btn.teal:active{background:var(--teal-600);}
+  .btn.danger{background:#fff; color:var(--red); border-color:#E7B9B3;}
+  .btn.block{width:100%; flex:none;}
+  .btn:disabled{opacity:.5; cursor:not-allowed;}
+
+  .err-note{background:var(--red-bg); border:1px solid #E7B9B3; color:#8A2A20; border-radius:10px; padding:10px 12px; font-size:.82rem; font-weight:600; margin-top:12px; display:none;}
+  .err-note.show{display:block;}
+
+  .active-tag{display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--ink-2); margin-bottom:12px; flex-wrap:wrap;}
+  .active-tag b{color:var(--teal);}
+
+  /* ---------- Meta / progresso ---------- */
+  .meta-top{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;}
+  .meta-big{font-size:2.1rem; font-weight:800; color:var(--teal); line-height:1;}
+  .meta-big small{font-size:.95rem; font-weight:600; color:var(--ink-2);}
+  .meta-goal{font-size:.8rem; color:var(--ink-2); font-weight:600;}
+  .bar{height:12px; background:#E1E8E9; border-radius:999px; overflow:hidden;}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--teal),var(--teal-600)); border-radius:999px; transition:width .3s;}
+  .bar > i.full{background:linear-gradient(90deg,var(--green),#25a366);}
+
+  .tol{margin-top:14px; background:#FCF4E9; border:1px solid #F0D9B6; border-left:4px solid var(--amber); border-radius:10px; padding:12px 14px; display:flex; gap:10px;}
+  .tol svg{flex:0 0 auto; width:20px; height:20px; color:var(--amber-700); margin-top:1px;}
+  .tol p{margin:0; font-size:.8rem; color:#7A5410; line-height:1.45;}
+  .tol b{color:#5F3F08;}
+
+  /* ---------- Filtros + Lista ---------- */
+  .filters{display:flex; gap:7px; overflow-x:auto; padding:2px 0 4px; margin-bottom:12px; -webkit-overflow-scrolling:touch;}
+  .chip{flex:0 0 auto; border:1.5px solid var(--line-2); background:#fff; border-radius:999px; padding:8px 14px; font-size:.8rem; font-weight:600; color:var(--ink-2); cursor:pointer; white-space:nowrap;}
+  .chip.sel{background:var(--teal); border-color:var(--teal); color:#fff;}
+  .chip .cnt{opacity:.7; margin-left:5px; font-variant-numeric:tabular-nums;}
+
+  .item{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:13px 14px; margin-bottom:10px; cursor:pointer; display:flex; gap:12px; align-items:center;}
+  .item:active{background:#F7FAFA;}
+  .item .body{flex:1; min-width:0;}
+  .item .l1{display:flex; justify-content:space-between; gap:8px; align-items:center;}
+  .item .nf{font-weight:800; color:var(--teal); font-size:.95rem;}
+  .item .l2{font-size:.78rem; color:var(--ink-2); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .item .l3{font-size:.74rem; color:var(--slate); margin-top:5px; font-variant-numeric:tabular-nums;}
+  .pill{flex:0 0 auto; font-size:.68rem; font-weight:800; padding:4px 9px; border-radius:999px; text-transform:uppercase; letter-spacing:.4px;}
+  .pill.campo{background:#EAEFF0; color:var(--slate);}
+  .pill.estacao{background:#FBF0D8; color:var(--yellow);}
+  .pill.entregue{background:#DFF3E8; color:var(--green);}
+  .chev{flex:0 0 auto; color:var(--line-2);}
+
+  .empty{text-align:center; padding:40px 20px; color:var(--ink-2);}
+  .empty svg{width:44px; height:44px; color:var(--line-2); margin-bottom:10px;}
+  .empty p{margin:0 0 4px; font-weight:600;}
+  .empty span{font-size:.82rem;}
+
+  /* ---------- Dados ---------- */
+  .kv{display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--line); font-size:.86rem;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--ink-2); font-weight:600;}
+  .kv .v{font-weight:700; font-variant-numeric:tabular-nums;}
+  .storagebar{height:10px; background:#E1E8E9; border-radius:999px; overflow:hidden; margin:8px 0 4px;}
+  .storagebar > i{display:block; height:100%; background:var(--teal); border-radius:999px;}
+  .storagebar > i.warn{background:var(--amber);}
+  .storagebar > i.crit{background:var(--red);}
+  .stack{display:flex; flex-direction:column; gap:10px;}
+
+  /* ---------- Bottom nav ---------- */
+  nav.tabs{
+    position:fixed; left:0; right:0; bottom:0; z-index:30;
+    background:#fff; border-top:1px solid var(--line);
+    display:flex; padding-bottom:var(--safe-b);
+    box-shadow:0 -2px 14px rgba(14,53,61,.08);
+  }
+  nav.tabs button{
+    flex:1; background:none; border:none; cursor:pointer;
+    padding:9px 4px calc(9px); min-height:var(--tap);
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    color:var(--ink-2); font:inherit; font-size:.68rem; font-weight:700; letter-spacing:.2px;
+    border-top:3px solid transparent; margin-top:-1px;
+  }
+  nav.tabs button svg{width:23px; height:23px;}
+  nav.tabs button.sel{color:var(--amber-700); border-top-color:var(--amber);}
+
+  /* ---------- Toast ---------- */
+  #toast{position:fixed; left:50%; bottom:calc(var(--tap) + 20px + var(--safe-b)); transform:translateX(-50%) translateY(20px); z-index:50;
+    background:var(--teal); color:#fff; padding:12px 18px; border-radius:999px; font-size:.85rem; font-weight:600; box-shadow:0 6px 20px rgba(14,53,61,.3);
+    opacity:0; pointer-events:none; transition:.22s; max-width:90vw;}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* ---------- Geo + Foto ---------- */
+  .wide-btn{width:100%; min-height:var(--tap); border-radius:11px; border:1.5px solid var(--line-2); background:#fff; color:var(--teal); font:inherit; font-weight:700; font-size:.88rem; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px;}
+  .wide-btn:active{background:#F2F6F6;}
+  .wide-btn svg{width:18px; height:18px;}
+  .photo-btn{display:flex; align-items:center; justify-content:center; gap:8px; min-height:66px; border:1.5px dashed var(--line-2); border-radius:11px; background:#FBFDFD; color:var(--teal); font-weight:700; font-size:.9rem; cursor:pointer;}
+  .photo-btn:active{background:#F2F6F6;}
+  .photo-btn svg{width:24px; height:24px; color:var(--amber-700);}
+  .photo-preview{margin-top:10px; position:relative; display:none;}
+  .photo-preview img{width:100%; border-radius:10px; display:block; border:1px solid var(--line);}
+  .photo-preview .rm{position:absolute; top:8px; right:8px; background:rgba(14,53,61,.86); color:#fff; border:none; border-radius:999px; padding:8px 13px; font-weight:700; font-size:.78rem; cursor:pointer;}
+  .photo-meta{font-size:.72rem; color:var(--ink-2); margin-top:6px; font-variant-numeric:tabular-nums;}
+  .geo-ok{color:var(--green) !important; font-weight:600;}
+  .geo-warn{color:var(--amber-700) !important; font-weight:600;}
+
+  .sync-ok{color:var(--green) !important;}
+  .sync-err{color:var(--red) !important;}
+  .dot-pend{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--amber); margin-right:5px; vertical-align:middle;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <div>
+    <h1>Ficha de Coleta</h1>
+    <div class="sub">Campo · GACF / UniLins</div>
+  </div>
+  <div id="storeChip" class="store-chip num">—</div>
+</header>
+
+<main>
+  <!-- ============ VIEW: COLETA ============ -->
+  <section id="view-coleta" class="view active">
+    <div class="active-tag" id="activeTag"></div>
+
+    <div class="stepper" id="stepper">
+      <div class="step" data-step="1">
+        <div class="dot"><span>1</span></div>
+        <div class="lbl">Campo</div>
+        <div class="line"></div>
+      </div>
+      <div class="step" data-step="2">
+        <div class="dot"><span>2</span></div>
+        <div class="lbl">Estação</div>
+        <div class="line"></div>
+      </div>
+      <div class="step" data-step="3">
+        <div class="dot"><span>3</span></div>
+        <div class="lbl">Laboratório</div>
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <!-- ---- ESTÁGIO 1: CAMPO ---- -->
+    <div class="card stage" data-stage="1">
+      <div class="eyebrow">Coletor · em campo</div>
+      <h2>Identificação e medição</h2>
+
+      <div class="row">
+        <div class="field" data-k="nficha">
+          <label class="lab">Nº da ficha <span class="req">*</span></label>
+          <input type="text" id="nficha" inputmode="numeric" placeholder="ex: 04821" autocomplete="off">
+        </div>
+        <div class="field" data-k="data">
+          <label class="lab">Data</label>
+          <input type="date" id="data">
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lab">Ponto de coleta</label>
+        <input type="text" id="ponto" placeholder="descrição / endereço do ponto" autocomplete="off">
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label class="lab">Zona / Rota</label>
+          <input type="text" id="zona" list="zonas" placeholder="ex: zona / rota" autocomplete="off">
+          <datalist id="zonas"></datalist>
+        </div>
+        <div class="field">
+          <label class="lab">Coletor</label>
+          <input type="text" id="coletor" list="coletores" placeholder="ex: nome do coletor" autocomplete="off">
+          <datalist id="coletores"></datalist>
+        </div>
+      </div>
+
+      <div class="field" data-k="horaColeta">
+        <label class="lab">Hora da coleta <span class="req">*</span></label>
+        <div class="with-now">
+          <input type="time" id="horaColeta">
+          <button class="btn-now" type="button" data-now="horaColeta">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Agora
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lab">Condição de chuva</label>
+        <div class="seg" id="segChuva">
+          <button type="button" data-v="nenhuma">Sem chuva</button>
+          <button type="button" data-v="fraca">Fraca</button>
+          <button type="button" data-v="moderada">Moderada</button>
+          <button type="button" data-v="forte">Forte</button>
+        </div>
+      </div>
+
+      <div class="field" data-k="cloro">
+        <label class="lab">Cloro (mg/L) <span class="req">*</span></label>
+        <input type="number" id="cloro" inputmode="decimal" step="0.01" min="0" placeholder="ex: 0,80">
+      </div>
+
+      <div class="field">
+        <div class="switch" id="swAtend">
+          <span class="stxt">Atendimento específico?</span>
+          <span class="track"></span>
+        </div>
+        <div class="hint">Ative só quando a coleta exigir turbidez (atendimento específico). Nas coletas de rotina, deixe desligado.</div>
+      </div>
+
+      <div class="field" id="fieldTurb" data-k="turbidez" style="display:none;">
+        <label class="lab">Turbidez (NTU) <span class="req">*</span></label>
+        <input type="number" id="turbidez" inputmode="decimal" step="0.1" min="0" placeholder="ex: 1,2">
+      </div>
+
+      <div class="field">
+        <label class="lab">Localização do ponto</label>
+        <button class="wide-btn" type="button" id="btnGeo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.3 7-11a7 7 0 10-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          Usar minha localização
+        </button>
+        <div id="geoStatus" class="hint"></div>
+        <div class="row" style="margin-top:8px;">
+          <div class="field" style="margin-bottom:0;">
+            <label class="lab">Latitude</label>
+            <input type="text" id="lat" inputmode="decimal" placeholder="-25.42xxx" autocomplete="off">
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label class="lab">Longitude</label>
+            <input type="text" id="lng" inputmode="decimal" placeholder="-49.27xxx" autocomplete="off">
+          </div>
+        </div>
+        <div class="hint">Abrindo o arquivo direto no celular, o GPS costuma ficar bloqueado. Toque no botão; se não vier nada, digite à mão.</div>
+      </div>
+
+      <div class="field">
+        <label class="lab">Foto do ponto (evidência)</label>
+        <label class="photo-btn" for="photoInput">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8a2 2 0 012-2h1.6l1-1.6h4.8l1 1.6H18a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V8z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
+          Tirar / anexar foto
+        </label>
+        <input type="file" id="photoInput" accept="image/*" capture="environment" hidden>
+        <div class="photo-preview" id="photoPreview">
+          <button class="rm" type="button">Remover</button>
+          <img alt="Foto do ponto de coleta">
+          <div class="photo-meta" id="photoMeta"></div>
+        </div>
+        <div class="hint">Data, hora e (se houver) coordenadas ficam carimbadas na imagem. A foto é comprimida para caber no aparelho.</div>
+      </div>
+
+      <div class="err-note" id="err1"></div>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn primary" type="button" id="go1to2">
+          Validar na estação
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ---- ESTÁGIO 2: ESTAÇÃO ---- -->
+    <div class="card stage" data-stage="2" style="display:none;">
+      <div class="eyebrow">Coletor + operador · na estação</div>
+      <h2>Validação e assinatura</h2>
+
+      <div class="field" data-k="horaChegada">
+        <label class="lab">Horário de chegada na estação <span class="req">*</span></label>
+        <div class="with-now">
+          <input type="time" id="horaChegada">
+          <button class="btn-now" type="button" data-now="horaChegada">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Agora
+          </button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field" data-k="tempCaixa">
+          <label class="lab">Temp. da caixa (°C) <span class="req">*</span></label>
+          <input type="number" id="tempCaixa" inputmode="decimal" step="0.1" placeholder="ex: 23,5">
+        </div>
+        <div class="field">
+          <label class="lab">Operador</label>
+          <input type="text" id="operadorEstacao" list="ops" placeholder="ex: operador" autocomplete="off">
+          <datalist id="ops"></datalist>
+        </div>
+      </div>
+
+      <div class="field" data-k="assinatura">
+        <label class="lab">Assinatura do operador <span class="req">*</span></label>
+        <div class="sign-wrap" id="signWrap">
+          <canvas id="sig"></canvas>
+          <div class="sign-base"></div>
+          <div class="sign-tools">
+            <span class="lg">Assine com o dedo</span>
+            <button class="link-btn" type="button" id="sigClear">Limpar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="switch" id="swVias">
+          <span class="stxt">Vias da ficha divididas (2 vias)</span>
+          <span class="track"></span>
+        </div>
+      </div>
+
+      <div class="err-note" id="err2"></div>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn ghost" type="button" id="back2to1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+        </button>
+        <button class="btn primary" type="button" id="go2to3">
+          Ir para entrega
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ---- ESTÁGIO 3: LABORATÓRIO ---- -->
+    <div class="card stage" data-stage="3" style="display:none;">
+      <div class="eyebrow">Coletor · entrega</div>
+      <h2>Entrega no laboratório</h2>
+
+      <div class="field">
+        <div class="switch" id="swFrascos">
+          <span class="stxt">Frascos entregues no laboratório</span>
+          <span class="track"></span>
+        </div>
+      </div>
+
+      <div class="field" data-k="horaEntrega">
+        <label class="lab">Horário de entrega <span class="req">*</span></label>
+        <div class="with-now">
+          <input type="time" id="horaEntrega">
+          <button class="btn-now" type="button" data-now="horaEntrega">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Agora
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lab">Observações</label>
+        <textarea id="obs" placeholder="Anotações opcionais sobre a coleta ou a entrega."></textarea>
+      </div>
+
+      <div class="err-note" id="err3"></div>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn ghost" type="button" id="back3to2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+        </button>
+        <button class="btn teal" type="button" id="finish">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6L9 17l-5-5"/></svg>
+          Concluir ficha
+        </button>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn ghost block" type="button" id="newFicha" style="flex:1;">+ Nova ficha</button>
+    </div>
+  </section>
+
+  <!-- ============ VIEW: FICHAS ============ -->
+  <section id="view-fichas" class="view">
+    <div class="card">
+      <div class="meta-top">
+        <div>
+          <div class="meta-big num"><span id="mCount">0</span><small> / <span id="mGoal">1000</span></small></div>
+          <div class="meta-goal">coletas em <span id="mMonth">—</span></div>
+        </div>
+        <div style="text-align:right;">
+          <div class="meta-big num" style="font-size:1.4rem; color:var(--amber-700);" id="mPct">0%</div>
+        </div>
+      </div>
+      <div class="bar"><i id="mBar" style="width:0%"></i></div>
+      <div class="tol">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a2 2 0 001.7 3h16.6A2 2 0 0022 18L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+        <p>A data impressa na guia é apenas <b>referência</b>. O prazo real é o <b>fechamento do mês</b> — restam <b id="mDays" class="num">—</b> para bater a meta de <span class="num" id="mDays2">—</span> coletas.</p>
+      </div>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="chip sel" data-f="todos">Todas <span class="cnt" id="cAll">0</span></button>
+      <button class="chip" data-f="campo">Em campo <span class="cnt" id="cCampo">0</span></button>
+      <button class="chip" data-f="estacao">Na estação <span class="cnt" id="cEst">0</span></button>
+      <button class="chip" data-f="entregue">Entregues <span class="cnt" id="cEnt">0</span></button>
+    </div>
+
+    <div id="list"></div>
+  </section>
+
+  <!-- ============ VIEW: DADOS ============ -->
+  <section id="view-dados" class="view">
+    <div class="card">
+      <div class="eyebrow">Sincronização (nuvem)</div>
+      <h2>Enviar para a planilha</h2>
+      <div class="field">
+        <label class="lab">URL do Web App (Apps Script)</label>
+        <input type="text" id="syncUrl" placeholder="https://script.google.com/.../exec" autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="lab">Token</label>
+        <input type="text" id="syncToken" placeholder="o mesmo TOKEN do backend" autocomplete="off">
+      </div>
+      <div class="field">
+        <div class="switch" id="swFotos">
+          <span class="stxt">Enviar fotos junto (usa mais dados)</span>
+          <span class="track"></span>
+        </div>
+        <div class="hint">Desligado: sincroniza só os dados agora; as fotos sobem depois, no wi-fi, sem duplicar a ficha.</div>
+      </div>
+      <button class="btn teal block" type="button" id="saveSync" style="flex:none; margin-bottom:10px;">Salvar conexão</button>
+      <div class="kv"><span class="k">Pendentes de envio</span><span class="v num" id="syncPend">0</span></div>
+      <div class="kv"><span class="k">Última sincronização</span><span class="v" id="syncLast">nunca</span></div>
+      <div id="syncStatus" class="hint" style="margin:8px 0 12px;"></div>
+      <button class="btn primary block" type="button" id="btnSync" style="flex:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 12a8 8 0 0113.7-5.7L20 8"/><path d="M20 4v4h-4"/><path d="M20 12a8 8 0 01-13.7 5.7L4 16"/><path d="M4 20v-4h4"/></svg>
+        Sincronizar agora
+      </button>
+      <div class="hint" style="margin-top:8px;">Funciona offline: a coleta é salva no aparelho na hora e só sobe quando há sinal. Reenviar não duplica (o backend atualiza pelo id).</div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Configuração</div>
+      <h2>Meta do mês</h2>
+      <div class="field">
+        <label class="lab">Meta de coletas por mês</label>
+        <input type="number" id="metaInput" inputmode="numeric" min="1" step="1">
+        <div class="hint">Padrão 1.000. Usada para o progresso e o card de tolerância na aba Fichas.</div>
+      </div>
+      <button class="btn teal block" type="button" id="saveMeta" style="flex:none;">Salvar meta</button>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Exportar</div>
+      <h2>Fechamento e backup</h2>
+      <div class="stack">
+        <button class="btn primary block" type="button" id="expCsv" style="flex:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          Exportar CSV (planilha)
+        </button>
+        <button class="btn teal block" type="button" id="expJson" style="flex:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+          Backup completo JSON (com assinaturas)
+        </button>
+      </div>
+      <div class="hint" style="margin-top:10px;">O CSV não inclui a imagem da assinatura (só “assinado: sim/não”). Use o JSON para backup fiel — é o único formato que preserva as assinaturas.</div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Armazenamento local</div>
+      <h2>Espaço usado</h2>
+      <div class="kv"><span class="k">Fichas salvas</span><span class="v num" id="stTotal">0</span></div>
+      <div class="kv"><span class="k">Espaço estimado</span><span class="v num" id="stSize">0 KB</span></div>
+      <div class="storagebar"><i id="stBar" style="width:0%"></i></div>
+      <div class="hint" id="stMsg" style="margin-top:6px;"></div>
+      <div style="height:12px;"></div>
+      <button class="btn ghost block" type="button" id="archive" style="flex:none;">Arquivar entregues (baixa JSON e remove)</button>
+      <div class="hint" style="margin-top:8px;">Recomendado no fechamento do mês: baixa o backup das fichas entregues e as remove daqui para liberar espaço. As que ainda estão em campo/estação permanecem.</div>
+    </div>
+
+    <div class="card" style="border-color:#E7B9B3;">
+      <div class="eyebrow" style="color:var(--red);">Zona de perigo</div>
+      <button class="btn danger block" type="button" id="wipe" style="flex:none;">Apagar TODAS as fichas</button>
+    </div>
+
+    <div style="text-align:center; color:var(--ink-2); font-size:.72rem; padding:6px 0 12px;">
+      Funciona 100% offline · dados salvos só neste aparelho
+    </div>
+  </section>
+</main>
+
+<nav class="tabs">
+  <button data-view="coleta" class="sel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5s6 6.6 6 11a6 6 0 01-12 0c0-4.4 6-11 6-11z"/></svg>
+    Coleta
+  </button>
+  <button data-view="fichas">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v3h6V3M9 12h6M9 16h4"/></svg>
+    Fichas
+  </button>
+  <button data-view="dados">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+    Dados
+  </button>
+</nav>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+(function(){
+  var K_DATA="sanepar_gacf_coletas_v1", K_CFG="sanepar_gacf_config_v1", K_SYNC="sanepar_gacf_sync_v1";
+  var LS_BUDGET=5*1024*1024; // ~5MB referência conservadora p/ localStorage
+
+  // -------- estado --------
+  var fichas=[], cfg={metaMes:1000};
+  var active=null;      // ficha em edição
+  var curStage=1;       // estágio visível
+  var filter="todos";
+
+  // -------- util --------
+  function $(s,ctx){return (ctx||document).querySelector(s);}
+  function $all(s,ctx){return Array.prototype.slice.call((ctx||document).querySelectorAll(s));}
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+  function todayISO(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+  function pad(n){return (n<10?"0":"")+n;}
+  function nowHM(){var d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes());}
+  function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});}
+  function toast(m){var t=$("#toast"); t.textContent=m; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("show");},2200);}
+
+  function load(){
+    try{var d=localStorage.getItem(K_DATA); fichas=d?JSON.parse(d):[];}catch(e){fichas=[];}
+    try{var c=localStorage.getItem(K_CFG); if(c){cfg=Object.assign(cfg,JSON.parse(c));}}catch(e){}
+  }
+  function persist(){
+    try{localStorage.setItem(K_DATA, JSON.stringify(fichas)); return true;}
+    catch(e){ toast("Sem espaço para salvar. Arquive as entregues na aba Dados."); return false; }
+  }
+  function persistCfg(){ try{localStorage.setItem(K_CFG, JSON.stringify(cfg));}catch(e){} }
+
+  function derivarStatus(f){
+    if(f.frascosEntregues && f.horaEntrega) return "entregue";
+    if(f.horaChegada && f.tempCaixa!=="" && f.tempCaixa!=null && f.assinatura) return "estacao";
+    return "campo";
+  }
+  function upsert(f){
+    f.status=derivarStatus(f);
+    f.atualizadoEm=new Date().toISOString();
+    f.sync="pendente"; // alterou -> precisa (re)sincronizar
+    var i=fichas.findIndex(function(x){return x.id===f.id;});
+    if(i>=0) fichas[i]=f; else { f.criadoEm=f.criadoEm||f.atualizadoEm; fichas.unshift(f); }
+    var ok=persist(); refreshDatalists(); return ok;
+  }
+  function novaFicha(){
+    return {id:uid(), nficha:"", ponto:"", zona:"", coletor:"", data:todayISO(),
+      horaColeta:"", chuva:"nenhuma", cloro:"", atendEspecifico:false, turbidez:"",
+      lat:"", lng:"", geoPrec:null, foto:null, fotoUrl:"",
+      horaChegada:"", tempCaixa:"", operadorEstacao:"", assinatura:null, viasDivididas:false,
+      frascosEntregues:false, horaEntrega:"", obs:"", status:"campo", sync:"pendente",
+      criadoEm:null, atualizadoEm:null};
+  }
+  function refreshDatalists(){
+    var z={}, c={}, o={};
+    fichas.forEach(function(f){ if(f.zona)z[f.zona]=1; if(f.coletor)c[f.coletor]=1; if(f.operadorEstacao)o[f.operadorEstacao]=1; });
+    fillDatalist("zonas",z); fillDatalist("coletores",c); fillDatalist("ops",o);
+  }
+  function fillDatalist(id,obj){ var el=$("#"+id); if(!el) return;
+    el.innerHTML=Object.keys(obj).sort().map(function(v){return '<option value="'+esc(v)+'"></option>';}).join(""); }
+
+  // -------- navegação de abas --------
+  function showView(v){
+    $all("nav.tabs button").forEach(function(b){b.classList.toggle("sel", b.dataset.view===v);});
+    $all(".view").forEach(function(s){s.classList.toggle("active", s.id==="view-"+v);});
+    if(v==="fichas") renderFichas();
+    if(v==="dados") renderDados();
+    window.scrollTo(0,0);
+  }
+  $all("nav.tabs button").forEach(function(b){ b.addEventListener("click", function(){showView(b.dataset.view);}); });
+
+  // -------- stepper / estágios --------
+  function showStage(n){
+    curStage=n;
+    $all(".stage").forEach(function(el){el.style.display = (+el.dataset.stage===n)?"":"none";});
+    $all("#stepper .step").forEach(function(el){
+      var s=+el.dataset.step;
+      el.classList.toggle("active", s===n);
+      el.classList.toggle("done", s<n);
+    });
+    if(n===2) setTimeout(setupSignature,30);
+    window.scrollTo(0,0);
+  }
+  function stepperClick(e){
+    var st=e.target.closest(".step"); if(!st) return;
+    var target=+st.dataset.step;
+    if(target<curStage){ collectStageInputs(); showStage(target); }
+  }
+  $("#stepper").addEventListener("click", stepperClick);
+
+  // -------- bind form <-> active --------
+  function fillForm(f){
+    $("#nficha").value=f.nficha; $("#data").value=f.data||todayISO();
+    $("#ponto").value=f.ponto; $("#zona").value=f.zona; $("#coletor").value=f.coletor;
+    $("#horaColeta").value=f.horaColeta; $("#cloro").value=f.cloro;
+    setSeg(f.chuva); setSwitch("swAtend", f.atendEspecifico); toggleTurb(f.atendEspecifico);
+    $("#turbidez").value=f.turbidez==null?"":f.turbidez;
+    $("#lat").value=f.lat||""; $("#lng").value=f.lng||"";
+    $("#geoStatus").textContent=""; $("#geoStatus").className="hint";
+    renderPhoto(f.foto);
+    $("#horaChegada").value=f.horaChegada; $("#tempCaixa").value=f.tempCaixa;
+    $("#operadorEstacao").value=f.operadorEstacao; setSwitch("swVias", f.viasDivididas);
+    setSwitch("swFrascos", f.frascosEntregues); $("#horaEntrega").value=f.horaEntrega; $("#obs").value=f.obs;
+    clearMiss(); hideErr();
+    renderActiveTag();
+  }
+  function collectStageInputs(){
+    if(!active) return;
+    active.nficha=$("#nficha").value.trim(); active.data=$("#data").value;
+    active.ponto=$("#ponto").value.trim(); active.zona=$("#zona").value.trim(); active.coletor=$("#coletor").value.trim();
+    active.horaColeta=$("#horaColeta").value; active.cloro=$("#cloro").value.trim();
+    active.turbidez=active.atendEspecifico?$("#turbidez").value.trim():"";
+    active.lat=$("#lat").value.trim(); active.lng=$("#lng").value.trim();
+    active.horaChegada=$("#horaChegada").value; active.tempCaixa=$("#tempCaixa").value.trim();
+    active.operadorEstacao=$("#operadorEstacao").value.trim();
+    active.horaEntrega=$("#horaEntrega").value; active.obs=$("#obs").value.trim();
+  }
+
+  function renderActiveTag(){
+    var f=active; if(!f){$("#activeTag").innerHTML="";return;}
+    var st=derivarStatus(f);
+    var lbl={campo:"Em campo",estacao:"Na estação",entregue:"Entregue"}[st];
+    $("#activeTag").innerHTML="Ficha ativa: <b>"+(f.nficha?("Nº "+esc(f.nficha)):"nova")+"</b> · "+lbl+
+      (f.zona?(" · "+esc(f.zona)):"");
+  }
+
+  // segmented chuva
+  function setSeg(v){ $all("#segChuva button").forEach(function(b){b.classList.toggle("sel", b.dataset.v===v);}); }
+  $("#segChuva").addEventListener("click", function(e){
+    var b=e.target.closest("button"); if(!b) return; setSeg(b.dataset.v); if(active) active.chuva=b.dataset.v;
+  });
+  // switches
+  function setSwitch(id,on){ $("#"+id).classList.toggle("on", !!on); }
+  function bindSwitch(id, cb){ $("#"+id).addEventListener("click", function(){ var on=!$("#"+id).classList.contains("on"); setSwitch(id,on); cb(on); }); }
+  function toggleTurb(on){ $("#fieldTurb").style.display=on?"":"none"; }
+  bindSwitch("swAtend", function(on){ if(active) active.atendEspecifico=on; toggleTurb(on); if(!on){$("#turbidez").value=""; $("#fieldTurb").classList.remove("miss");} });
+  bindSwitch("swVias", function(on){ if(active) active.viasDivididas=on; });
+  bindSwitch("swFrascos", function(on){ if(active) active.frascosEntregues=on; });
+
+  // botões "agora"
+  $all(".btn-now").forEach(function(b){ b.addEventListener("click", function(){ $("#"+b.dataset.now).value=nowHM(); }); });
+
+  // -------- validação --------
+  function markMiss(keys){
+    clearMiss(); var first=null;
+    keys.forEach(function(k){ var el=$('.field[data-k="'+k+'"]')||(k==="assinatura"?$("#signWrap"):null); if(el){el.classList.add("miss"); if(!first) first=el;} });
+    if(first) first.scrollIntoView({block:"center", behavior:"smooth"});
+  }
+  function clearMiss(){ $all(".field.miss").forEach(function(e){e.classList.remove("miss");}); $("#signWrap").classList.remove("miss"); }
+  function showErr(id,msg){ var e=$("#"+id); e.textContent=msg; e.classList.add("show"); }
+  function hideErr(){ $all(".err-note").forEach(function(e){e.classList.remove("show");}); }
+
+  function validateStage1(){
+    collectStageInputs(); var miss=[];
+    if(!active.nficha) miss.push("nficha");
+    if(!active.horaColeta) miss.push("horaColeta");
+    if(active.cloro==="") miss.push("cloro");
+    if(active.atendEspecifico && active.turbidez==="") miss.push("turbidez");
+    if(miss.length){ markMiss(miss); showErr("err1","Preencha os campos destacados: nº da ficha, hora e cloro são obrigatórios"+(active.atendEspecifico?", e a turbidez neste atendimento.":".")); return false; }
+    hideErr(); clearMiss(); return true;
+  }
+  function validateStage2(){
+    collectStageInputs(); readSignature(); var miss=[];
+    if(!active.horaChegada) miss.push("horaChegada");
+    if(active.tempCaixa==="") miss.push("tempCaixa");
+    if(!active.assinatura) miss.push("assinatura");
+    if(miss.length){ markMiss(miss); showErr("err2","Faltam dados da estação: chegada, temperatura da caixa e a assinatura do operador."); return false; }
+    hideErr(); clearMiss(); return true;
+  }
+  function validateStage3(){
+    collectStageInputs(); var miss=[];
+    if(!active.frascosEntregues){ showErr("err3","Confirme a entrega dos frascos no laboratório para concluir."); return false; }
+    if(!active.horaEntrega){ markMiss(["horaEntrega"]); showErr("err3","Informe o horário de entrega."); return false; }
+    hideErr(); clearMiss(); return true;
+  }
+
+  // -------- transições --------
+  $("#go1to2").addEventListener("click", function(){ if(validateStage1()){ upsert(active); showStage(2); } });
+  $("#back2to1").addEventListener("click", function(){ collectStageInputs(); readSignature(); upsert(active); showStage(1); });
+  $("#go2to3").addEventListener("click", function(){ if(validateStage2()){ upsert(active); showStage(3); } });
+  $("#back3to2").addEventListener("click", function(){ collectStageInputs(); upsert(active); showStage(2); setTimeout(function(){if(active.assinatura) drawSavedSignature(active.assinatura);},60); });
+  $("#finish").addEventListener("click", function(){
+    if(validateStage3()){
+      if(upsert(active)){ toast("Ficha Nº "+(active.nficha||"—")+" concluída ✓"); startNew(); showView("fichas"); }
+    }
+  });
+  $("#newFicha").addEventListener("click", function(){ startNew(); toast("Nova ficha iniciada"); });
+
+  function startNew(){ active=novaFicha(); fillForm(active); showStage(1); clearSignature(); }
+  function editFicha(id){
+    var f=fichas.find(function(x){return x.id===id;}); if(!f) return;
+    active=JSON.parse(JSON.stringify(f)); fillForm(active);
+    var st=derivarStatus(active);
+    var stage = st==="entregue"?3 : st==="estacao"?2 : 1;
+    showView("coleta"); showStage(stage);
+    if(stage===2 || stage===3){ setTimeout(function(){ if(active.assinatura) drawSavedSignature(active.assinatura); },80); }
+  }
+
+  // ===================== ASSINATURA (canvas) =====================
+  var sigCanvas, sigCtx, sigDrawing=false, sigDirty=false, sigReady=false, sigLast=null;
+  function setupSignature(){
+    sigCanvas=$("#sig"); if(!sigCanvas) return;
+    var rect=sigCanvas.getBoundingClientRect();
+    var dpr=window.devicePixelRatio||1;
+    sigCanvas.width=Math.max(1,Math.round(rect.width*dpr));
+    sigCanvas.height=Math.max(1,Math.round(rect.height*dpr));
+    sigCtx=sigCanvas.getContext("2d");
+    sigCtx.scale(dpr,dpr);
+    sigCtx.lineWidth=2.4; sigCtx.lineCap="round"; sigCtx.lineJoin="round"; sigCtx.strokeStyle="#0E353D";
+    sigDirty=false;
+    if(!sigReady){
+      sigCanvas.addEventListener("pointerdown", sigStart);
+      sigCanvas.addEventListener("pointermove", sigMove);
+      window.addEventListener("pointerup", sigEnd);
+      sigReady=true;
+    }
+    if(active && active.assinatura) drawSavedSignature(active.assinatura);
+  }
+  function sigPos(e){ var r=sigCanvas.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top}; }
+  function sigStart(e){ e.preventDefault(); sigDrawing=true; sigLast=sigPos(e); try{sigCanvas.setPointerCapture(e.pointerId);}catch(_){}}
+  function sigMove(e){ if(!sigDrawing) return; e.preventDefault(); var p=sigPos(e);
+    sigCtx.beginPath(); sigCtx.moveTo(sigLast.x,sigLast.y); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); sigLast=p; sigDirty=true;
+    $("#signWrap").classList.remove("miss");
+  }
+  function sigEnd(){ sigDrawing=false; }
+  function clearSignature(){ if(sigCtx){ sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height);} sigDirty=false; }
+  $("#sigClear").addEventListener("click", function(){ clearSignature(); if(active) active.assinatura=null; });
+  function readSignature(){
+    if(!active) return;
+    if(sigDirty && sigCanvas){
+      // comprime para PNG pequeno (fundo branco) p/ caber no localStorage
+      var w=340, h=Math.round(340*(sigCanvas.height/sigCanvas.width))||120;
+      var t=document.createElement("canvas"); t.width=w; t.height=h;
+      var tc=t.getContext("2d"); tc.fillStyle="#fff"; tc.fillRect(0,0,w,h);
+      tc.drawImage(sigCanvas,0,0,w,h);
+      active.assinatura=t.toDataURL("image/png");
+    }
+  }
+  function drawSavedSignature(dataUrl){
+    if(!sigCtx){ setupSignature(); if(!sigCtx) return; }
+    var img=new Image();
+    img.onload=function(){ var r=sigCanvas.getBoundingClientRect(); sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height); sigCtx.drawImage(img,0,0,r.width,r.height); sigDirty=true; };
+    img.src=dataUrl;
+  }
+
+  // ===================== FOTO + LOCALIZAÇÃO =====================
+  function bytesOf(dataUrl){ return dataUrl?Math.round(dataUrl.length*0.75):0; }
+  function fmtKB(b){ return b<1024?(b+" B"):((b/1024).toFixed(0)+" KB"); }
+  function renderPhoto(dataUrl){
+    var wrap=$("#photoPreview");
+    if(dataUrl){ wrap.style.display="block"; wrap.querySelector("img").src=dataUrl; $("#photoMeta").textContent="Foto anexada · "+fmtKB(bytesOf(dataUrl)); }
+    else { wrap.style.display="none"; wrap.querySelector("img").removeAttribute("src"); $("#photoMeta").textContent=""; }
+  }
+  function stampLines(){
+    var d=new Date();
+    var s=pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear()+"  "+pad(d.getHours())+":"+pad(d.getMinutes());
+    var lines=[s];
+    var nf=$("#nficha").value.trim(); var la=$("#lat").value.trim(), lo=$("#lng").value.trim();
+    var l2=[]; if(nf) l2.push("Ficha "+nf); if(la&&lo) l2.push(la+", "+lo);
+    if(l2.length) lines.push(l2.join("   "));
+    return lines;
+  }
+  function handlePhoto(file){
+    if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var maxSide=1000, w=img.width, h=img.height, sc=Math.min(1, maxSide/Math.max(w,h));
+        w=Math.max(1,Math.round(w*sc)); h=Math.max(1,Math.round(h*sc));
+        var c=document.createElement("canvas"); c.width=w; c.height=h; var cx=c.getContext("2d");
+        cx.drawImage(img,0,0,w,h);
+        var lines=stampLines();
+        var fs=Math.max(13, Math.round(w*0.030)); var mg=Math.round(fs*0.55);
+        cx.font="700 "+fs+"px system-ui,-apple-system,sans-serif"; cx.textBaseline="alphabetic";
+        var bh=fs*lines.length + mg*(lines.length+1);
+        cx.fillStyle="rgba(14,53,61,.72)"; cx.fillRect(0,h-bh,w,bh);
+        cx.fillStyle="#ffffff";
+        lines.forEach(function(t,i){ cx.fillText(t, mg, h-bh + mg + fs*(i+1) + mg*i); });
+        var out=c.toDataURL("image/jpeg",0.6);
+        if(active) active.foto=out;
+        renderPhoto(out);
+        if(bytesOf(out)>400*1024) toast("Foto pesada ("+fmtKB(bytesOf(out))+") — descarregue as fichas ao fim da rota");
+      };
+      img.onerror=function(){ toast("Não consegui ler a imagem"); };
+      img.src=ev.target.result;
+    };
+    reader.onerror=function(){ toast("Falha ao abrir a foto"); };
+    reader.readAsDataURL(file);
+  }
+  $("#photoInput").addEventListener("change", function(e){ var f=e.target.files&&e.target.files[0]; handlePhoto(f); e.target.value=""; });
+  $("#photoPreview").addEventListener("click", function(e){ if(e.target.closest(".rm")){ if(active) active.foto=null; renderPhoto(null); } });
+
+  function doGeo(){
+    var st=$("#geoStatus");
+    if(!navigator.geolocation){ st.className="hint geo-warn"; st.textContent="Este modo não expõe GPS. Digite as coordenadas manualmente."; return; }
+    st.className="hint"; st.textContent="Obtendo localização…";
+    navigator.geolocation.getCurrentPosition(function(p){
+      var la=p.coords.latitude.toFixed(6), lo=p.coords.longitude.toFixed(6);
+      $("#lat").value=la; $("#lng").value=lo;
+      if(active){ active.lat=la; active.lng=lo; active.geoPrec=Math.round(p.coords.accuracy); }
+      st.className="hint geo-ok"; st.textContent="Localização obtida (±"+Math.round(p.coords.accuracy)+" m).";
+    }, function(err){
+      st.className="hint geo-warn";
+      st.textContent = err && err.code===1 ? "Permissão negada. Digite as coordenadas manualmente."
+        : "GPS indisponível neste modo (comum ao abrir o arquivo direto). Digite à mão.";
+    }, {enableHighAccuracy:true, timeout:8000, maximumAge:0});
+  }
+  $("#btnGeo").addEventListener("click", doGeo);
+
+  // ===================== ABA FICHAS =====================
+  function monthLabel(){ var m=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"]; var d=new Date(); return m[d.getMonth()]+"/"+d.getFullYear(); }
+  function inCurrentMonth(iso){ if(!iso) return false; var d=new Date(); var p=iso.split("-"); return (+p[0]===d.getFullYear() && +p[1]===d.getMonth()+1); }
+  function daysLeftInMonth(){ var d=new Date(); var last=new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); return last-d.getDate(); }
+
+  function renderFichas(){
+    var goal=cfg.metaMes||1000;
+    var monthCount=fichas.filter(function(f){return inCurrentMonth(f.data);}).length;
+    $("#mCount").textContent=monthCount; $("#mGoal").textContent=goal; $("#mMonth").textContent=monthLabel();
+    var pct=Math.min(100, Math.round(monthCount/goal*100));
+    $("#mPct").textContent=pct+"%";
+    var bar=$("#mBar"); bar.style.width=pct+"%"; bar.classList.toggle("full", monthCount>=goal);
+    $("#mDays").textContent=daysLeftInMonth()+(daysLeftInMonth()===1?" dia":" dias");
+    $("#mDays2").textContent=goal;
+
+    var counts={todos:fichas.length,campo:0,estacao:0,entregue:0};
+    fichas.forEach(function(f){counts[derivarStatus(f)]++;});
+    $("#cAll").textContent=counts.todos; $("#cCampo").textContent=counts.campo; $("#cEst").textContent=counts.estacao; $("#cEnt").textContent=counts.entregue;
+
+    var arr=fichas.filter(function(f){return filter==="todos"||derivarStatus(f)===filter;});
+    var list=$("#list");
+    if(!arr.length){
+      list.innerHTML='<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v3h6V3"/></svg><p>Nenhuma ficha aqui</p><span>'+(fichas.length?"Nenhuma ficha neste filtro.":"Toque em Coleta para registrar a primeira.")+'</span></div>';
+      return;
+    }
+    list.innerHTML=arr.map(function(f){
+      var st=derivarStatus(f);
+      var stl={campo:"Campo",estacao:"Estação",entregue:"Entregue"}[st];
+      var det=[]; if(f.zona)det.push(esc(f.zona)); if(f.coletor)det.push(esc(f.coletor));
+      var l3=[]; if(f.horaColeta)l3.push("coleta "+f.horaColeta); if(f.cloro!=="")l3.push("Cl "+esc(f.cloro)+" mg/L");
+      if(f.atendEspecifico && f.turbidez!=="")l3.push("Turb "+esc(f.turbidez));
+      return '<div class="item" data-id="'+f.id+'"><div class="body">'+
+        '<div class="l1"><span class="nf">'+(f.nficha?("Nº "+esc(f.nficha)):"— sem nº")+'</span><span class="pill '+st+'">'+stl+'</span></div>'+
+        '<div class="l2">'+(det.join(" · ")||"ponto não informado")+'</div>'+
+        '<div class="l3 num">'+(f.sync!=="enviado"?'<span class="dot-pend" title="não enviada"></span>':"")+(f.data||"")+(l3.length?(" · "+l3.join(" · ")):"")+'</div>'+
+        '</div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M9 6l6 6-6 6"/></svg></div>';
+    }).join("");
+    $all("#list .item").forEach(function(el){ el.addEventListener("click", function(){ editFicha(el.dataset.id); }); });
+  }
+  $("#filters").addEventListener("click", function(e){
+    var c=e.target.closest(".chip"); if(!c) return; filter=c.dataset.f;
+    $all("#filters .chip").forEach(function(x){x.classList.toggle("sel", x===c);}); renderFichas();
+  });
+
+  // ===================== ABA DADOS =====================
+  function bytesOfData(){ try{return (localStorage.getItem(K_DATA)||"").length;}catch(e){return 0;} }
+  function fmtSize(b){ return b<1024? b+" B" : b<1048576? (b/1024).toFixed(1)+" KB" : (b/1048576).toFixed(2)+" MB"; }
+  function renderDados(){
+    $("#metaInput").value=cfg.metaMes||1000;
+    $("#stTotal").textContent=fichas.length;
+    var b=bytesOfData(); $("#stSize").textContent=fmtSize(b);
+    var pct=Math.min(100, Math.round(b/LS_BUDGET*100));
+    var bar=$("#stBar"); bar.style.width=pct+"%";
+    bar.classList.toggle("warn", pct>=60 && pct<85); bar.classList.toggle("crit", pct>=85);
+    $("#stMsg").textContent = pct>=85 ? "Espaço quase no limite — arquive as entregues agora." :
+                              pct>=60 ? "Uso moderado. Considere arquivar as entregues no fechamento." :
+                              "Uso saudável (~"+pct+"% do limite estimado do navegador).";
+    updateStoreChip();
+    renderSync();
+  }
+  function updateStoreChip(){
+    var b=bytesOfData(); var pct=Math.round(b/LS_BUDGET*100);
+    var chip=$("#storeChip"); chip.textContent=fichas.length+" fichas · "+pct+"%";
+    chip.classList.toggle("warn", pct>=60 && pct<85); chip.classList.toggle("crit", pct>=85);
+  }
+  $("#saveMeta").addEventListener("click", function(){
+    var v=parseInt($("#metaInput").value,10); if(!v||v<1){toast("Informe uma meta válida");return;}
+    cfg.metaMes=v; persistCfg(); toast("Meta salva: "+v+"/mês");
+  });
+
+  function download(name, content, type){
+    var blob=new Blob([content],{type:type}); var url=URL.createObjectURL(blob);
+    var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click();
+    setTimeout(function(){document.body.removeChild(a); URL.revokeObjectURL(url);},400);
+  }
+  function stamp(){ var d=new Date(); return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"_"+pad(d.getHours())+pad(d.getMinutes()); }
+  function csvCell(v){ v=String(v==null?"":v); return /[",;\n]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v; }
+  $("#expCsv").addEventListener("click", function(){
+    if(!fichas.length){toast("Nada para exportar");return;}
+    var head=["Nº ficha","Data","Ponto","Zona/Rota","Coletor","Hora coleta","Chuva","Cloro mg/L","Atend. específico","Turbidez NTU","Latitude","Longitude","Foto","Hora chegada","Temp. caixa °C","Operador","Assinado","Vias divididas","Frascos entregues","Hora entrega","Status","Observações"];
+    var chuvaL={nenhuma:"Sem chuva",fraca:"Fraca",moderada:"Moderada",forte:"Forte"};
+    var rows=fichas.map(function(f){return [
+      f.nficha,f.data,f.ponto,f.zona,f.coletor,f.horaColeta,chuvaL[f.chuva]||f.chuva,f.cloro,
+      f.atendEspecifico?"Sim":"Não",f.atendEspecifico?f.turbidez:"",f.lat,f.lng,f.foto?"Sim":"Não",f.horaChegada,f.tempCaixa,f.operadorEstacao,
+      f.assinatura?"Sim":"Não",f.viasDivididas?"Sim":"Não",f.frascosEntregues?"Sim":"Não",f.horaEntrega,
+      {campo:"Em campo",estacao:"Na estação",entregue:"Entregue"}[derivarStatus(f)],f.obs
+    ].map(csvCell).join(";");});
+    download("coletas_"+stamp()+".csv", "\ufeff"+head.join(";")+"\n"+rows.join("\n"), "text/csv;charset=utf-8");
+    toast("CSV exportado ("+fichas.length+" fichas)");
+  });
+  $("#expJson").addEventListener("click", function(){
+    if(!fichas.length){toast("Nada para exportar");return;}
+    download("backup_coletas_"+stamp()+".json", JSON.stringify({exportadoEm:new Date().toISOString(),cfg:cfg,fichas:fichas},null,2), "application/json");
+    toast("Backup JSON exportado");
+  });
+  $("#archive").addEventListener("click", function(){
+    var ent=fichas.filter(function(f){return derivarStatus(f)==="entregue";});
+    if(!ent.length){toast("Não há fichas entregues para arquivar");return;}
+    if(!confirm("Baixar backup de "+ent.length+" ficha(s) entregue(s) e removê-las deste aparelho?\n\nAs fichas em campo/estação continuam aqui.")) return;
+    download("arquivo_entregues_"+stamp()+".json", JSON.stringify({arquivadoEm:new Date().toISOString(),fichas:ent},null,2), "application/json");
+    fichas=fichas.filter(function(f){return derivarStatus(f)!=="entregue";});
+    persist(); renderDados(); toast(ent.length+" ficha(s) arquivada(s)");
+  });
+  $("#wipe").addEventListener("click", function(){
+    if(!fichas.length){toast("Já está vazio");return;}
+    if(!confirm("APAGAR todas as "+fichas.length+" fichas deste aparelho? Esta ação não tem volta.\n\nExporte um backup antes se precisar.")) return;
+    if(!confirm("Confirma? Tudo será apagado.")) return;
+    fichas=[]; persist(); if(active) startNew(); renderDados(); renderFichas(); toast("Todas as fichas foram apagadas");
+  });
+
+  // ===================== SINCRONIZAÇÃO (offline-first) =====================
+  var syncCfg={url:"", token:"", fotos:true, lastSync:""};
+  var syncing=false;
+  function loadSync(){ try{var s=localStorage.getItem(K_SYNC); if(s) syncCfg=Object.assign(syncCfg,JSON.parse(s));}catch(e){} }
+  function saveSyncCfg(){ try{localStorage.setItem(K_SYNC, JSON.stringify(syncCfg));}catch(e){} }
+  function pendentes(){ return fichas.filter(function(f){ return f.sync!=="enviado"; }); }
+  function setSyncStatus(msg, cls){ var el=$("#syncStatus"); if(!el) return; el.textContent=msg||""; el.className="hint"+(cls?(" "+cls):""); }
+  function fmtDT(iso){ try{var d=new Date(iso); return pad(d.getDate())+"/"+pad(d.getMonth()+1)+" "+pad(d.getHours())+":"+pad(d.getMinutes());}catch(e){return "—";} }
+  function renderSync(){
+    $("#syncUrl").value=syncCfg.url||""; $("#syncToken").value=syncCfg.token||"";
+    setSwitch("swFotos", syncCfg.fotos);
+    $("#syncPend").textContent=pendentes().length;
+    $("#syncLast").textContent=syncCfg.lastSync?fmtDT(syncCfg.lastSync):"nunca";
+  }
+
+  function paraBackend(f){
+    return { id:f.id, nficha:f.nficha, data:f.data, ponto:f.ponto||"", zona:f.zona, coletor:f.coletor,
+      horaColeta:f.horaColeta, chuva:f.chuva, cloro:f.cloro, atendEspecifico:!!f.atendEspecifico,
+      turbidez:f.atendEspecifico?f.turbidez:"", lat:f.lat, lng:f.lng, fotoUrl:f.fotoUrl||"",
+      horaChegada:f.horaChegada, tempCaixa:f.tempCaixa, operadorEstacao:f.operadorEstacao,
+      viasDivididas:!!f.viasDivididas, frascosEntregues:!!f.frascosEntregues, horaEntrega:f.horaEntrega,
+      status:derivarStatus(f), obs:f.obs, criadoEm:f.criadoEm };
+  }
+  // corpo em text/plain evita preflight CORS a partir de file://
+  function postJSON(payload){
+    return fetch(syncCfg.url, { method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(payload) })
+      .then(function(r){ return r.json(); });
+  }
+  function getIds(){
+    var u=syncCfg.url+(syncCfg.url.indexOf("?")>=0?"&":"?")+"action=ids&tab=coletas&token="+encodeURIComponent(syncCfg.token);
+    return fetch(u).then(function(r){return r.json();}).then(function(j){ return (j&&j.ok&&j.ids)?j.ids:[]; }).catch(function(){return [];});
+  }
+  function subirFoto(f){
+    var m=(f.foto.match(/^data:(.*?);/)||[])[1]||"image/jpeg";
+    var b64=f.foto.split(",")[1]||"";
+    return postJSON({token:syncCfg.token, action:"foto", id:f.id, nome:(f.nficha||f.id), mime:m, dataBase64:b64})
+      .then(function(j){ if(j&&j.ok&&j.fotoUrl){ f.fotoUrl=j.fotoUrl; persist(); return true; } return false; });
+  }
+
+  function syncNow(){
+    if(syncing) return;
+    if(!syncCfg.url){ toast("Configure a URL do Web App primeiro"); return; }
+    var pend=pendentes();
+    if(!pend.length){ toast("Nada pendente para sincronizar"); renderSync(); return; }
+    syncing=true; setSyncStatus("Sincronizando "+pend.length+"…");
+
+    var chain=Promise.resolve();
+    if(syncCfg.fotos){ // 1) sobe as fotos pendentes primeiro (para a coleta já levar o link)
+      pend.forEach(function(f){ if(f.foto && !f.fotoUrl){ chain=chain.then(function(){ return subirFoto(f).catch(function(){}); }); } });
+    }
+    chain.then(function(){ // 2) envia as coletas em lote (upsert por id no backend)
+      return postJSON({token:syncCfg.token, action:"coletas", items:pend.map(paraBackend)})
+        .then(function(j){ if(j&&j.ok) return j.confirmados||[]; throw new Error(j&&j.error?j.error:"resposta inválida"); })
+        .catch(function(){ return getIds(); }); // fallback: confirma pelos ids já gravados
+    }).then(function(confirmados){ // 3) marca como enviadas
+      var set={}; (confirmados||[]).forEach(function(id){set[id]=true;});
+      var n=0; fichas.forEach(function(f){ if(set[f.id] && f.sync!=="enviado"){ f.sync="enviado"; n++; } });
+      persist();
+      syncCfg.lastSync=new Date().toISOString(); saveSyncCfg();
+      var restam=pendentes().length;
+      setSyncStatus(restam? (n+" enviada(s) · "+restam+" ainda pendente(s)") : "Tudo sincronizado", restam?null:"sync-ok");
+      toast(restam? ("Sincronizado. "+restam+" pendente(s)") : "Tudo sincronizado \u2713");
+      renderSync(); if($("#view-fichas").classList.contains("active")) renderFichas();
+    }).catch(function(err){
+      setSyncStatus("Falha: "+(err&&err.message?err.message:err), "sync-err");
+      toast("Falha na sincronização");
+    }).then(function(){ syncing=false; });
+  }
+
+  $("#saveSync").addEventListener("click", function(){
+    syncCfg.url=$("#syncUrl").value.trim(); syncCfg.token=$("#syncToken").value.trim();
+    syncCfg.fotos=$("#swFotos").classList.contains("on"); saveSyncCfg(); toast("Conexão salva"); renderSync();
+  });
+  bindSwitch("swFotos", function(on){ syncCfg.fotos=on; saveSyncCfg(); });
+  $("#btnSync").addEventListener("click", syncNow);
+  window.addEventListener("online", function(){ if(syncCfg.url && pendentes().length){ setSyncStatus("Conexão detectada \u2014 sincronizando\u2026"); syncNow(); } });
+
+  // -------- init --------
+  load(); loadSync();
+  active=novaFicha(); fillForm(active); showStage(1);
+  refreshDatalists();
+  updateStoreChip();
+
+  window.addEventListener("resize", function(){ if(curStage===2 && $("#view-coleta").classList.contains("active")){ var saved=active&&active.assinatura; setupSignature(); if(saved) drawSavedSignature(saved); } });
+})();
+</script>
+</body>
+</html>
